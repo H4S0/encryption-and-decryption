@@ -1,40 +1,45 @@
-<?php
-$linija = $pom = $kr = '';
-$duz = $i = $k = $k1 = $k2 = 0;
+const fs = require('fs');
+const readline = require('readline');
 
-$dat = fopen("ot.txt", "r");
-if ($dat) {
-    while (($linija = fgets($dat)) !== false) {
-        echo $linija . PHP_EOL;
-        $pom .= $linija . PHP_EOL;
+let linija = '', pom = '', kr = '';
+let duz = 0, i = 0, k = 0, k1 = 0, k2 = 0;
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+fs.readFile('ot.txt', 'utf8', (err, data) => {
+    if (err) {
+        console.error('Datoteka ne postoji.');
+        return;
     }
-    fclose($dat);
-} else {
-    echo "Datoteka ne postoji.";
-}
+    console.log(data);
+    pom += data + '\n';
 
-echo "Unesite kljuc: ";
-$k = intval(trim(fgets(STDIN)));
+    rl.question('Unesite kljuc: ', (answer) => {
+        k = parseInt(answer);
 
-for ($i = 0; $i < strlen($pom); $i++) {
-    if (ord($pom[$i]) > 96 && ord($pom[$i]) < 123) {
-        $k1 = ord($pom[$i]);
-        $k1 = $k1 + $k;
-        if ($k1 > 122) {
-            $pom[$i] = chr($k1 - 122 + 97);
-        } else {
-            $pom[$i] = chr($k1);
+        for (i = 0; i < pom.length; i++) {
+            if (pom.charCodeAt(i) > 96 && pom.charCodeAt(i) < 123) {
+                k1 = pom.charCodeAt(i);
+                k1 += k;
+                if (k1 > 122) {
+                    pom = pom.substr(0, i) + String.fromCharCode(k1 - 122 + 97) + pom.substr(i + 1);
+                } else {
+                    pom = pom.substr(0, i) + String.fromCharCode(k1) + pom.substr(i + 1);
+                }
+                kr += pom[i];
+            }
         }
-        $kr .= $pom[$i];
-    }
-}
 
-$dat2 = fopen("kr.txt", "w");
-if ($dat2) {
-    fwrite($dat2, $kr . PHP_EOL);
-    fclose($dat2);
-    echo "Datoteka kr.txt je kreirana.";
-} else {
-    echo "Nisam mogao kreirati datoteku.";
-}
-?>
+        fs.writeFile('kr.txt', kr + '\n', (err) => {
+            if (err) {
+                console.error('Nisam mogao kreirati datoteku.');
+                return;
+            }
+            console.log('Datoteka kr.txt je kreirana.');
+            rl.close();
+        });
+    });
+});
